@@ -48,23 +48,35 @@ class PaymentController extends Controller
 
     public function showCheckout($id)
     {
-        $course = Course::findOrFail($id);
-        $user = Auth::user();
+        // 1. Tìm khóa học và lấy User hiện tại
+        $course = \App\Models\Course::findOrFail($id);
+        $user = \Illuminate\Support\Facades\Auth::user();
 
-        // Tạo hoặc lấy giao dịch đang chờ
-        $transaction = Transaction::firstOrCreate(
+        // 2. KIỂM TRA QUYỀN SỞ HỮU: Nếu đã mua rồi thì đá về trang chủ ngay
+        $isEnrolled = \App\Models\Enrollment::where('user_id', $user->id)
+            ->where('course_id', $id)
+            ->exists();
+
+        if ($isEnrolled) {
+            // Quay về trang chủ kèm thông báo (giúp xử lý vụ bấm Back trình duyệt)
+            return redirect()->route('client.home')->with('success', 'Bạn đã sở hữu khóa học này rồi!');
+        }
+
+        // 3. TẠO HOẶC CẬP NHẬT GIAO DỊCH: 
+        // Dùng updateOrCreate để nếu giá khóa học thay đổi thì mã QR cũng đổi theo
+        $transaction = \App\Models\Transaction::updateOrCreate(
             [
                 'user_id' => $user->id,
                 'course_id' => $course->id,
                 'status' => 'pending'
             ],
             [
-                'amount' => $course->price,
-                'code' => 'EDU' . time() . $user->id,
+                'amount' => $course->price, // Luôn cập nhật giá mới nhất
+                'code' => 'EDU' . time() . $user->id, // Tạo mã nội dung chuyển khoản duy nhất
             ]
         );
 
-        // 3. SỬA LOGIC: Thêm 'user' vào compact để trang checkout không báo lỗi undefined
+        // 4. Trả về View (đã sửa đường dẫn thành client.checkout như bạn để file)
         return view('client.checkout', compact('course', 'transaction', 'user'));
     }
 }

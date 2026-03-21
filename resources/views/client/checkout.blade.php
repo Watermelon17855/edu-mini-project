@@ -1,7 +1,9 @@
 @extends('layouts.client')
 @section('title', 'Thanh toán khóa học')
 
+
 @section('content')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <div class="container py-5">
     <div class="row g-4">
         <div class="col-md-7">
@@ -87,17 +89,32 @@
 {{-- Script tự động kiểm tra thanh toán --}}
 <script>
     const checkPayment = setInterval(function() {
-        // Bạn cần tạo route này ở api.php để trả về status của transaction nhé
         fetch(`/api/check-transaction/{{ $transaction->id }}`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'completed') {
+                    // 1. Dừng việc kiểm tra ngay lập tức
                     clearInterval(checkPayment);
-                    alert('Thanh toán thành công! Chúc bạn học tốt.');
-                    window.location.href = "{{ route('client.my_courses') }}";
+
+                    // 2. Hiện bảng thông báo "Xịn"
+                    Swal.fire({
+                        title: 'Thanh toán thành công!',
+                        text: 'Cảm ơn bạn! Hệ thống đã kích hoạt khóa học.',
+                        icon: 'success',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Về trang chủ ngay',
+                        confirmButtonColor: '#0d6efd',
+                        allowOutsideClick: false // Bắt buộc khách phải bấm nút mới chuyển trang
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // 3. Điều hướng về trang chủ
+                            // Đồng thời đính kèm một thông báo nhỏ để hiện ở trang chủ
+                            window.location.href = "{{ route('client.home') }}?payment_success=true";
+                        }
+                    });
                 }
             })
-            .catch(err => console.log('Checking...'));
-    }, 4000); // 4 giây kiểm tra 1 lần
+            .catch(err => console.log('Đang kết nối máy chủ...'));
+    }, 3000); // 3 giây check 1 lần cho nhanh
 </script>
 @endsection

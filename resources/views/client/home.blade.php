@@ -50,4 +50,16 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(request()->get('payment_success'))
+<script>
+    Swal.fire({
+        title: 'Thanh toán thành công!',
+        text: 'Vui lòng vào mục "Khóa học của tôi" để bắt đầu học nhé.',
+        icon: 'info',
+        confirmButtonText: 'Tôi đã hiểu',
+        confirmButtonColor: '#0d6efd',
+    });
+</script>
+@endif
 @endsection
