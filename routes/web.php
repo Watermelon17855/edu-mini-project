@@ -22,7 +22,7 @@ Route::get('/init-data', function () {
         'title' => 'Fullstack Web với Node.js & React',
         'price' => 1200000,
         'description' => 'Học làm web từ A-Z, từ Front-end đến Back-end và Deploy.',
-        'image' => 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800'
+        'thumbnail' => 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800'
     ]);
 
     // 2. Tạo 1 tài khoản để bạn đăng nhập thử
