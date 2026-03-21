@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Client\CourseController;
+use App\Http\Controllers\Client\PaymentController;
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminCourseController;
@@ -9,11 +10,10 @@ use App\Http\Controllers\Admin\AdminLessonController;
 use App\Http\Controllers\Admin\AdminUserController;
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\Course;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-
 
 // Route tạm thời để tạo dữ liệu mẫu trên Railway
 Route::get('/init-data', function () {
@@ -57,8 +57,9 @@ Route::middleware('auth')->group(function () {
     // Trang "Khóa học của tôi" và Trang "Học tập"
     Route::get('/my-courses', [CourseController::class, 'myCourses'])->name('client.my_courses');
     Route::get('/course/{course_id}/learn/{lesson_id?}', [CourseController::class, 'learn'])->name('client.course.learn');
-    Route::get('/course/{id}/checkout', [CourseController::class, 'checkout'])->name('client.checkout');
-
+    Route::get('/course/{id}/checkout', [PaymentController::class, 'showCheckout'])
+        ->name('course.checkout')
+        ->middleware('auth');
     // Các route profile mặc định của Breeze
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
