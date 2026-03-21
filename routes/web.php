@@ -10,6 +10,33 @@ use App\Http\Controllers\Admin\AdminUserController;
 
 use Illuminate\Support\Facades\Route;
 
+use App\Models\Course;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+
+
+// Route tạm thời để tạo dữ liệu mẫu trên Railway
+Route::get('/init-data', function () {
+    // 1. Tạo 1 khóa học mẫu
+    Course::create([
+        'title' => 'Fullstack Web với Node.js & React',
+        'price' => 1200000,
+        'description' => 'Học làm web từ A-Z, từ Front-end đến Back-end và Deploy.',
+        'image' => 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800'
+    ]);
+
+    // 2. Tạo 1 tài khoản để bạn đăng nhập thử
+    User::firstOrCreate(
+        ['email' => 'admin@gmail.com'],
+        [
+            'name' => 'Admin EduHub',
+            'password' => Hash::make('12345678'),
+        ]
+    );
+
+    return "Đã tạo xong 1 khóa học và 1 tài khoản (admin@gmail.com / 12345678). Hãy quay lại trang chủ!";
+});
+
 /*
 |--------------------------------------------------------------------------
 | CLIENT ROUTES (Dành cho học viên)
