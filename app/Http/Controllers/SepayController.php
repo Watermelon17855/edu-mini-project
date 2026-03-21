@@ -12,34 +12,27 @@ class SepayController extends Controller
     {
         $data = $request->all();
 
-        // 1. Ghi log để kiểm tra (xem trong storage/logs/laravel.log)
-        Log::info('SePay Webhook Data:', $data);
-
-        // 2. Lấy nội dung chuyển khoản (Ví dụ: "Thanh toan EDU123")
+        // 1. Lấy nội dung chuyển khoản (Ví dụ: "EDU1774100278")
         $content = $data['content'] ?? '';
 
-        // 3. Dùng Regex để "móc" lấy ID đơn hàng (ví dụ mã đơn là EDU123)
-        if (preg_match('/EDU(\d+)/', $content, $matches)) {
-            $transactionId = $matches[1];
+        // 2. Dùng Regex để tách lấy mã (Lấy cả chữ EDU và số)
+        if (preg_match('/EDU\d+/', $content, $matches)) {
+            $checkoutCode = $matches[0]; // Kết quả sẽ là "EDU1774100278"
 
-            // 4. Tìm giao dịch trong Database
-            $transaction = Transaction::find($transactionId);
+            // 3. QUAN TRỌNG: Tìm theo cột 'code' chứ không phải 'id'
+            $transaction = \App\Models\Transaction::where('code', $checkoutCode)->first();
 
             if ($transaction && $transaction->status !== 'completed') {
-                // Kiểm tra xem số tiền có khớp không (tùy chọn nhưng nên có)
-                if ($data['transferAmount'] >= $transaction->amount) {
+                // 4. Cập nhật trạng thái thành công
+                $transaction->update(['status' => 'completed']);
 
-                    // Cập nhật trạng thái thành công
-                    $transaction->update(['status' => 'completed']);
+                // (Tùy chọn) Ghi log để mình yên tâm
+                \Illuminate\Support\Facades\Log::info("Đã thanh toán thành công đơn hàng: " . $checkoutCode);
 
-                    // TẠI ĐÂY: Bạn viết thêm code để mở khóa học cho User
-                    // Ví dụ: $transaction->user->courses()->attach($transaction->course_id);
-
-                    return response()->json(['success' => true, 'message' => 'Xác nhận thành công!']);
-                }
+                return response()->json(['success' => true]);
             }
         }
 
-        return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn hàng']);
+        return response()->json(['success' => false, 'message' => 'Transaction not found']);
     }
 }
