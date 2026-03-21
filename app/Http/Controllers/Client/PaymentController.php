@@ -65,6 +65,6 @@ class PaymentController extends Controller
         );
 
         // 3. SỬA LOGIC: Thêm 'user' vào compact để trang checkout không báo lỗi undefined
-        return view('client.payment.checkout', compact('course', 'transaction', 'user'));
+        return view('client.checkout', compact('course', 'transaction', 'user'));
     }
 }

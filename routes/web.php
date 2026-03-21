@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-courses', [CourseController::class, 'myCourses'])->name('client.my_courses');
     Route::get('/course/{course_id}/learn/{lesson_id?}', [CourseController::class, 'learn'])->name('client.course.learn');
     Route::get('/course/{id}/checkout', [PaymentController::class, 'showCheckout'])
-        ->name('course.checkout')
+        ->name('client.checkout')
         ->middleware('auth');
     // Các route profile mặc định của Breeze
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
