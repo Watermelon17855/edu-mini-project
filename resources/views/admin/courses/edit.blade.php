@@ -29,27 +29,31 @@ $isUrl = Str::startsWith($course->thumbnail, 'http');
 
                 <div class="d-flex gap-3 mb-2">
                     <div class="form-check">
-                        {{-- Tự động check nếu KHÔNG PHẢI là URL --}}
                         <input class="form-check-input" type="radio" name="image_type" id="type_file" value="file" {{ !$isUrl ? 'checked' : '' }}>
                         <label class="form-check-label" for="type_file">Tải file mới</label>
                     </div>
                     <div class="form-check">
-                        {{-- Tự động check nếu LÀ URL --}}
                         <input class="form-check-input" type="radio" name="image_type" id="type_url" value="url" {{ $isUrl ? 'checked' : '' }}>
                         <label class="form-check-label" for="type_url">Dán link mới</label>
                     </div>
                 </div>
 
-                {{-- Hiển thị block dựa trên trạng thái cũ --}}
                 <div id="input_file" style="display: {{ !$isUrl ? 'block' : 'none' }};">
                     <input type="file" name="image_file" class="form-control rounded-3">
                 </div>
 
                 <div id="input_url" style="display: {{ $isUrl ? 'block' : 'none' }};">
-                    <input type="text" name="image_url" value="{{ $isUrl ? $course->thumbnail : '' }}" class="form-control rounded-3" placeholder="Nhập link ảnh mới...">
-                    <div class="form-text text-warning mt-2">
+                    {{-- THÊM INPUT GROUP VÀ NÚT TỐI ƯU --}}
+                    <div class="input-group">
+                        <input type="text" id="image_url_input" name="image_url" value="{{ $isUrl ? $course->thumbnail : '' }}" class="form-control rounded-start-3" placeholder="Nhập link hoặc dán Base64...">
+                        <button class="btn btn-outline-primary fw-bold" type="button" id="btn-optimize">
+                            <i class="bi bi-magic"></i> Tối ưu
+                        </button>
+                    </div>
+
+                    <div class="form-text text-warning mt-2" id="optimize-msg">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        Lưu ý: Link ảnh không được vượt quá 255 ký tự. Không nên dán chuỗi Base64 dài để tránh lỗi hệ thống.
+                        Lưu ý: Link ảnh không được vượt quá 255 ký tự. Nhấn "Tối ưu" nếu bạn dán chuỗi Base64 dài.
                     </div>
                 </div>
             </div>
@@ -69,11 +73,55 @@ $isUrl = Str::startsWith($course->thumbnail, 'http');
 </div>
 
 <script>
+    // Logic ẩn hiện cũ của bạn
     document.querySelectorAll('input[name="image_type"]').forEach(radio => {
         radio.addEventListener('change', function() {
             document.getElementById('input_file').style.display = (this.value === 'file') ? 'block' : 'none';
             document.getElementById('input_url').style.display = (this.value === 'url') ? 'block' : 'none';
         });
+    });
+
+    // THÊM LOGIC XỬ LÝ NÚT TỐI ƯU
+    document.getElementById('btn-optimize').addEventListener('click', function() {
+        const urlInput = document.getElementById('image_url_input');
+        const url = urlInput.value;
+        const btn = this;
+        const msg = document.getElementById('optimize-msg');
+
+        if (!url) return alert('Vui lòng dán link trước!');
+
+        // Chỉ tối ưu nếu link dài hoặc là Base64 để tránh phí tài nguyên
+        if (url.length < 50 && !url.startsWith('data:image')) {
+            return alert('Link này đã đủ ngắn, không cần tối ưu đâu bạn ơi!');
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch('{{ route("admin.courses.optimize") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    url: url
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    urlInput.value = data.short_path;
+                    msg.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Đã tối ưu và rút gọn thành công!</span>';
+                } else {
+                    alert(data.msg || 'Có lỗi xảy ra!');
+                }
+            })
+            .catch(err => alert('Lỗi kết nối server!'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-magic"></i> Tối ưu';
+            });
     });
 </script>
 @endsection

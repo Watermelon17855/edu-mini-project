@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminCourseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $courses = \App\Models\Course::latest()->get();
@@ -47,14 +45,6 @@ class AdminCourseController extends Controller
         \App\Models\Course::create($data);
 
         return redirect()->route('admin.courses.index')->with('success', 'Thêm khóa học mới thành công!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     public function edit($id)
@@ -103,5 +93,27 @@ class AdminCourseController extends Controller
 
         $course->delete();
         return redirect()->route('admin.courses.index')->with('success', 'Đã xóa khóa học!');
+    }
+
+    public function optimizeImage(Request $request)
+    {
+        $url = $request->url;
+
+        try {
+            // Tải nội dung ảnh từ link hoặc Base64
+            $content = file_get_contents($url);
+            $fileName = 'opt_' . time() . '.png';
+
+            // Lưu vào storage
+            Storage::disk('public')->put('courses/' . $fileName, $content);
+
+            // Trả về đường dẫn ngắn
+            return response()->json([
+                'success' => true,
+                'short_path' => 'courses/' . $fileName
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'msg' => 'Không thể tối ưu link này!']);
+        }
     }
 }

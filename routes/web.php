@@ -53,6 +53,8 @@ Route::middleware('auth')->group(function () {
 // Nhóm route này yêu cầu: Đã đăng nhập (auth) VÀ phải là Admin (admin middleware)
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
+    Route::post('courses/optimize', [AdminCourseController::class, 'optimizeImage'])
+        ->name('courses.optimize');
     // Trang chủ Admin (Dashboard) - Link: /admin
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
     Route::resource('courses', AdminCourseController::class);
