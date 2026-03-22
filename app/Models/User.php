@@ -30,4 +30,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function courses()
+    {
+        // Liên kết giữa User và Course thông qua bảng trung gian 'enrollments'
+        return $this->belongsToMany(Course::class, 'enrollments', 'user_id', 'course_id')
+            ->withTimestamps(); // Để lấy được ngày giờ mua khóa học
+    }
 }

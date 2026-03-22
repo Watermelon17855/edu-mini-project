@@ -14,12 +14,28 @@ use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Thêm withCount('lessons') để Laravel tự đếm số bài học giúp mình
-        $courses = \App\Models\Course::withCount('lessons')->latest()->get();
+        $query = \App\Models\Course::query();
 
-        // Trả về view trang chủ kèm biến $courses
+        if ($request->search) {
+            $query->where('title', 'like', "%{$request->search}%");
+        }
+
+        // Nếu là yêu cầu từ Javascript (AJAX)
+        if ($request->ajax()) {
+            $courses = $query->limit(5)->get(['id', 'title', 'thumbnail'])->map(function ($course) {
+                // "Phù phép" lại cái thumbnail trước khi gửi sang Javascript
+                $course->thumbnail = \Illuminate\Support\Str::startsWith($course->thumbnail, 'http')
+                    ? $course->thumbnail
+                    : asset('storage/' . $course->thumbnail);
+                return $course;
+            });
+
+            return response()->json($courses);
+        }
+
+        $courses = $query->withCount('lessons')->latest()->get();
         return view('client.home', compact('courses'));
     }
 

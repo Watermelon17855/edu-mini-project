@@ -2,10 +2,15 @@
 @section('title', 'Sửa khóa học: ' . $course->title)
 
 @section('content')
+@php
+// Kiểm tra xem ảnh hiện tại là dạng link hay dạng file
+$isUrl = Str::startsWith($course->thumbnail, 'http');
+@endphp
+
 <div class="card border-0 shadow-sm rounded-4 p-4">
     <form action="{{ route('admin.courses.update', $course->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
-        @method('PUT') {{-- Bắt buộc phải có khi dùng Route Resource để Update --}}
+        @method('PUT')
 
         <div class="row">
             <div class="col-md-8 mb-3">
@@ -19,25 +24,33 @@
 
             <div class="col-12 mb-3">
                 <label class="form-label fw-bold d-block">Ảnh đại diện hiện tại</label>
-                <img src="{{ Str::startsWith($course->thumbnail, 'http') ? $course->thumbnail : asset('storage/' . $course->thumbnail) }}"
+                <img src="{{ $isUrl ? $course->thumbnail : asset('storage/' . $course->thumbnail) }}"
                     class="rounded-3 mb-3 border" style="width: 150px; height: 100px; object-fit: cover;">
 
                 <div class="d-flex gap-3 mb-2">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="image_type" id="type_file" value="file" checked>
+                        {{-- Tự động check nếu KHÔNG PHẢI là URL --}}
+                        <input class="form-check-input" type="radio" name="image_type" id="type_file" value="file" {{ !$isUrl ? 'checked' : '' }}>
                         <label class="form-check-label" for="type_file">Tải file mới</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="image_type" id="type_url" value="url">
+                        {{-- Tự động check nếu LÀ URL --}}
+                        <input class="form-check-input" type="radio" name="image_type" id="type_url" value="url" {{ $isUrl ? 'checked' : '' }}>
                         <label class="form-check-label" for="type_url">Dán link mới</label>
                     </div>
                 </div>
 
-                <div id="input_file">
+                {{-- Hiển thị block dựa trên trạng thái cũ --}}
+                <div id="input_file" style="display: {{ !$isUrl ? 'block' : 'none' }};">
                     <input type="file" name="image_file" class="form-control rounded-3">
                 </div>
-                <div id="input_url" style="display: none;">
-                    <input type="text" name="image_url" value="{{ Str::startsWith($course->thumbnail, 'http') ? $course->thumbnail : '' }}" class="form-control rounded-3" placeholder="Nhập link ảnh mới...">
+
+                <div id="input_url" style="display: {{ $isUrl ? 'block' : 'none' }};">
+                    <input type="text" name="image_url" value="{{ $isUrl ? $course->thumbnail : '' }}" class="form-control rounded-3" placeholder="Nhập link ảnh mới...">
+                    <div class="form-text text-warning mt-2">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Lưu ý: Link ảnh không được vượt quá 255 ký tự. Không nên dán chuỗi Base64 dài để tránh lỗi hệ thống.
+                    </div>
                 </div>
             </div>
 

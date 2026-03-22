@@ -18,7 +18,9 @@ class AdminUserController extends Controller
 
     public function edit($id)
     {
-        $user = User::findOrFail($id);
+        // Dùng with('courses') để Laravel tự động lấy các khóa học liên quan qua bảng trung gian
+        $user = User::with('courses')->findOrFail($id);
+
         return view('admin.users.edit', compact('user'));
     }
 
