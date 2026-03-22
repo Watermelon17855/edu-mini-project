@@ -16,7 +16,10 @@
         @foreach($courses as $course)
         <div class="col-md-4 mb-4">
             <div class="card h-100 course-card shadow-sm border-0">
-                <img src="{{ $course->thumbnail }}" class="card-img-top" alt="{{ $course->title }}" style="height: 180px; object-fit: cover;">
+                <img src="{{ \Illuminate\Support\Str::startsWith($course->thumbnail, 'http') ? $course->thumbnail : asset('storage/' . $course->thumbnail) }}"
+                    class="card-img-top"
+                    alt="{{ $course->title }}"
+                    style="height: 180px; object-fit: cover;">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title fw-bold">{{ $course->title }}</h5>
                     <div class="mt-auto">
